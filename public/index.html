@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ChatConnect</title>
+  <script src="app.js" defer></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <style>
+    body {
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+    }
+    .logo {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+    }
+    .card {
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 1rem;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+      padding: 2rem;
+      transition: all 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 30px rgba(0, 0, 0, 0.15);
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      transition: all 0.3s ease;
+    }
+    .btn-primary:hover {
+      transform: scale(1.05);
+      box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+    }
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+  </style>
+</head>
+<body class="flex flex-col items-center justify-center">
+  <div class="card text-center max-w-md w-full mx-4">
+    <div class="logo">🎓</div>
+    <h1 class="text-4xl font-bold mb-2 text-indigo-800">ChatConnect</h1>
+    <p class="text-gray-600 mb-8">Connect with random students for anonymous chats</p>
+    
+    <button onclick="startChat()" class="btn-primary text-white px-8 py-3 rounded-full text-lg font-medium w-full pulse">
+      Start Chatting
+    </button>
+    
+    <div class="mt-6 text-gray-500 text-sm">
+      <p>Connect with students from around the world</p>
+      <p>100% anonymous • No registration required</p>
+    </div>
+  </div>
+  
+  <footer class="mt-8 text-center text-gray-500 text-sm">
+    <p>© 2023 ChatConnect • Privacy-focused student chat</p>
+  </footer>
+</body>
+</html>
