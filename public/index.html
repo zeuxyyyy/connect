@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>ChatConnect</title>
+  <script src="/socket.io/socket.io.js"></script>
   <script src="app.js" defer></script>
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <style>
@@ -42,26 +43,78 @@
       50% { transform: scale(1.05); }
       100% { transform: scale(1); }
     }
+    
+    .online-users-badge {
+      background: rgba(102, 126, 234, 0.1);
+      border: 1px solid rgba(102, 126, 234, 0.2);
+      color: #667eea;
+      padding: 0.5rem 1rem;
+      border-radius: 9999px;
+      font-weight: 500;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .online-indicator {
+      width: 8px;
+      height: 8px;
+      background-color: #48bb78;
+      border-radius: 50%;
+      display: inline-block;
+      animation: pulse-green 2s infinite;
+    }
+    
+    @keyframes pulse-green {
+      0% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(72, 187, 120, 0.7);
+      }
+      70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 6px rgba(72, 187, 120, 0);
+      }
+      100% {
+        transform: scale(0.95);
+        box-shadow: 0 0 0 0 rgba(72, 187, 120, 0);
+      }
+    }
   </style>
 </head>
 <body class="flex flex-col items-center justify-center">
   <div class="card text-center max-w-md w-full mx-4">
-    <div class="logo">🎓</div>
+    <div class="logo">💬</div>
     <h1 class="text-4xl font-bold mb-2 text-indigo-800">ChatConnect</h1>
-    <p class="text-gray-600 mb-8">Connect with random students for anonymous chats</p>
+    <p class="text-gray-600 mb-8">Connect with random people for anonymous chats</p>
     
     <button onclick="startChat()" class="btn-primary text-white px-8 py-3 rounded-full text-lg font-medium w-full pulse">
       Start Chatting
     </button>
     
+    <!-- Replace both online-users divs with this single, styled version -->
+    <div id="online-users" class="online-users-badge mt-4">
+      <span class="online-indicator"></span>
+      <span>Loading users...</span>
+    </div>
+
+    <div class="mt-6 flex justify-center space-x-4">
+      <a href="login.html" class="text-indigo-600 hover:underline guest-only">Login</a>
+      <span class="text-gray-400 guest-only">|</span>
+      <a href="signup.html" class="text-indigo-600 hover:underline guest-only">Sign Up</a>
+      
+      <a href="profile.html" class="text-indigo-600 hover:underline profile-only" style="display: none;">My Profile</a>
+      <span class="text-gray-400 profile-only" style="display: none;">|</span>
+      <a href="#" onclick="logout(); return false;" class="text-indigo-600 hover:underline profile-only" style="display: none;">Logout</a>
+    </div>
+    
     <div class="mt-6 text-gray-500 text-sm">
-      <p>Connect with students from around the world</p>
-      <p>100% anonymous • No registration required</p>
+      <p>Connect with people from around the world</p>
+      <p>100% anonymous • Share your Instagram (optional)</p>
     </div>
   </div>
   
   <footer class="mt-8 text-center text-gray-500 text-sm">
-    <p>© 2023 ChatConnect • Privacy-focused student chat</p>
+    <p>© 2025 ChatConnect • Privacy-focused chat</p>
   </footer>
 </body>
 </html>
