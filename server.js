@@ -1,22 +1,86 @@
 const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
+const bodyParser = require("body-parser");
+const session = require("express-session");
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-app.use(express.static("public")); // serve frontend
-
+// Users data (in-memory)
+let users = {}; // username => { password, instagram }
 let waiting = [];
 let partners = new Map(); // socket.id => partner.id
 
+// Session middleware
+const sessionMiddleware = session({
+  secret: 'your-secret-key',
+  resave: false,
+  saveUninitialized: true
+});
+
+app.use(express.static("public")); // Serve frontend
+app.use(bodyParser.json());
+app.use(sessionMiddleware);
+
+// Share session with Socket.IO
+const wrap = (middleware) => (socket, next) =>
+  middleware(socket.request, {}, next);
+io.use(wrap(sessionMiddleware));
+
+// =======================
+// Auth Routes
+// =======================
+
+app.post("/signup", (req, res) => {
+  const { username, password, instagram } = req.body;
+  if (users[username]) {
+    return res.status(400).send("User already exists");
+  }
+  users[username] = { password, instagram };
+  req.session.username = username;
+  res.status(200).send("Signup successful");
+});
+
+app.post("/login", (req, res) => {
+  const { username, password } = req.body;
+  const user = users[username];
+  if (!user || user.password !== password) {
+    return res.status(401).send("Invalid credentials");
+  }
+  req.session.username = username;
+  res.status(200).send("Login successful");
+});
+
+app.get("/profile", (req, res) => {
+  const username = req.session.username;
+  const user = users[username];
+  if (!username || !user) {
+    return res.status(401).json({ error: "Not logged in" });
+  }
+  res.json({ username, instagram: user.instagram });
+});
+
+app.post("/logout", (req, res) => {
+  req.session.destroy(() => {
+    res.status(200).send("Logged out");
+  });
+});
+
+// =======================
+// Socket.IO logic
+// =======================
+
 io.on("connection", (socket) => {
-  console.log("New user:", socket.id);
+  console.log("New user connected:", socket.id);
+
+  // Emit current online users count to all clients
+  io.emit("onlineUsers", io.engine.clientsCount);
 
   socket.emit("status", "searching");
 
-  // Try to pair with waiting user
+  // Try pairing
   if (waiting.length > 0) {
     const partner = waiting.pop();
 
@@ -30,9 +94,7 @@ io.on("connection", (socket) => {
       socket.emit("message", "You are now connected!");
       partner.emit("message", "You are now connected!");
     } else {
-      // Partner disconnected
       waiting = waiting.filter(s => s.id !== partner.id);
-      socket.emit("status", "searching");
       waiting.push(socket);
     }
   } else {
@@ -68,16 +130,30 @@ io.on("connection", (socket) => {
 
   socket.on("reveal", () => {
     const partnerId = partners.get(socket.id);
+    const username = socket.request.session?.username;
+    const user = users[username];
+
     if (partnerId) {
-      io.to(partnerId).emit("message", "[Your partner wants to reveal identity]");
+      if (user?.instagram) {
+        io.to(partnerId).emit("message", `[Your partner's Instagram: ${user.instagram}]`);
+      } else {
+        io.to(partnerId).emit("message", "[Your partner wants to reveal identity]");
+      }
     }
   });
 
   socket.on("disconnect", () => {
     disconnectPartner(socket);
     waiting = waiting.filter(s => s.id !== socket.id);
+    console.log("User disconnected:", socket.id);
+    // Emit updated count when user disconnects
+    io.emit("onlineUsers", io.engine.clientsCount);
   });
 });
+
+// =======================
+// Helper Function
+// =======================
 
 function disconnectPartner(socket) {
   const partnerId = partners.get(socket.id);
@@ -93,6 +169,10 @@ function disconnectPartner(socket) {
   }
 }
 
-server.listen(3000, () => {
-  console.log("Server listening on http://localhost:3000");
+// =======================
+// Start Server
+// =======================
+
+server.listen(8000, () => {
+  console.log("🚀 Server running at http://localhost:8000");
 });
